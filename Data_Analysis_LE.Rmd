@@ -1,0 +1,16 @@
+---
+title: "Data_Analysis_LE"
+author: "Elizabeth Newman"
+date: "2026-09-29"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+hallucination_cases <- read_csv("hallucination_cases.csv")
+head(hallucination_cases)
+```
