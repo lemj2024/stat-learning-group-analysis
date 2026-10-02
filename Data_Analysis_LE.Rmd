@@ -12,5 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(readr)
 hallucination_cases <- read_csv("hallucination_cases.csv")
-head(hallucination_cases)
+View(hallucination_cases)
+
 ```
