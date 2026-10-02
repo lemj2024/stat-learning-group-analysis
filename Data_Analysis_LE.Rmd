@@ -9,8 +9,128 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+We decided that we wanted to model the probability of receiving professional sanctions based on the other variables available in the dataset.  
+
+
 ```{r}
 library(readr)
+library(ggplot2)
 hallucination_cases <- read_csv("hallucination_cases.csv")
 head(hallucination_cases)
 ```
+
+
+```{r}
+#checking types of parties 
+library(dplyr)
+hallucination_cases %>%
+  count(`Party(ies)`)
+```
+```{r}
+#checking legal fields 
+hallucination_cases %>%
+  count(`Legal Field Primary`)
+```
+```{r}
+#checking what the distribution of professional sanction vs no professional sanction
+hallucination_cases %>%
+  count(`Professional Sanction`)
+```
+```{r}
+#checking what the distribution of professional sanction vs no professional sanction
+hallucination_cases %>%
+  count(`State(s)`)
+```
+Because we can see that there a lot of countries with only one case, it doesn't make to make every country a variable. That would add 45 predictors to the model. We will thus make a variable for all states with 50 or more cases and other: so Australia, Canada, Israel, UK, the US and all other countries. 
+
+```{r}
+hallucination_cases <- hallucination_cases |>
+  filter(!is.na(`State(s)`)) |>
+  mutate(
+    country_group = if_else(
+      `State(s)` %in% c("Australia", "Canada", "Israel", "UK", "United States"),
+      `State(s)`,
+      "Other"
+    )
+  )
+```
+
+Looking at the where we get the data from, we can see that the variable AI tool contains "implied" which is when AI usage was evident but not admitted. 
+
+```{r}
+#checking what the distribution of professional sanction vs no professional sanction
+hallucination_cases %>%
+  count(`AI Tool`)
+```
+Similarly to country, but more extreme, we have 104 options for AI tool, which is too many variables. We can thus separate this into three categories: Implied, Unidentified, and Specific AI Tool. 
+
+```{r}
+hallucination_cases <- hallucination_cases |>
+  filter(!is.na(`AI Tool`)) %>%
+  mutate(
+    ai_tool_group = case_when(
+      `AI Tool` == "Unidentified" ~ "Unidentified",
+      `AI Tool` == "Implied" ~ "Implied",
+      `AI Tool` == "implied" ~ "Implied",
+      TRUE ~ "Specific AI Tool"
+    )
+  )
+```
+
+
+```{r}
+ggplot(hallucination_cases, aes(x = `Legal Field Primary`, fill = `Professional Sanction`)) +
+  geom_bar(position = "fill") +
+  labs(
+    x = "Primary Legal Field",
+    y = "Proportion of Cases",
+    fill = "Professional Sanctions"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+ggplot(hallucination_cases, aes(x = `country_group`, fill = `Professional Sanction`)) +
+  geom_bar(position = "fill") +
+  labs(
+    x = "Country",
+    y = "Proportion of Cases",
+    fill = "Professional Sanctions"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+ggplot(hallucination_cases, aes(x = `ai_tool_group`, fill = `Professional Sanction`)) +
+  geom_bar(position = "fill") +
+  labs(
+    x = "AI Tool Admitted",
+    y = "Proportion of Cases",
+    fill = "Professional Sanctions"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+library(broom)
+#making professional sanctions a binart variable and then running a glm 
+hallucination_cases <- hallucination_cases %>%
+  mutate(
+    professional_sanction_binary = if_else(
+      `Professional Sanction` == "Yes",
+      1,
+      0
+    )
+  )
+logistic_model <- glm(`professional_sanction_binary` ~ `country_group` + `Legal Field Primary` + `ai_tool_group`, data = hallucination_cases, family = "binomial") 
+summary(logistic_model)
+#tidy(logistic_model)
+```
+
+
