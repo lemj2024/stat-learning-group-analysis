@@ -16,6 +16,7 @@ We decided that we wanted to model the probability of receiving professional san
 library(readr)
 library(ggplot2)
 hallucination_cases <- read_csv("hallucination_cases.csv")
+<<<<<<< HEAD
 head(hallucination_cases)
 ```
 
@@ -134,3 +135,8 @@ summary(logistic_model)
 ```
 
 
+=======
+View(hallucination_cases)
+
+```
+>>>>>>> f0cb44343f2178d848408a81a1eb669841b93a1b
