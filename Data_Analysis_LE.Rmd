@@ -1,6 +1,6 @@
 ---
 title: "Data_Analysis_LE"
-author: "Elizabeth Newman"
+author: "Elizabeth Newman and Lili Maycock"
 date: "2026-09-29"
 output: pdf_document
 ---
