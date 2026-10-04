@@ -16,8 +16,6 @@ We decided that we wanted to model the probability of receiving professional san
 library(readr)
 library(ggplot2)
 hallucination_cases <- read_csv("hallucination_cases.csv")
-<<<<<<< HEAD
-head(hallucination_cases)
 ```
 
 
@@ -42,7 +40,7 @@ hallucination_cases %>%
 hallucination_cases %>%
   count(`State(s)`)
 ```
-Because we can see that there a lot of countries with only one case, it doesn't make to make every country a variable. That would add 45 predictors to the model. We will thus make a variable for all states with 50 or more cases and other: so Australia, Canada, Israel, UK, the US and all other countries. 
+Because we can see that there a lot of countries with only one case, it doesn't make sense to make every country a variable. That would add 45 predictors to the model. We will thus make a variable for all states with 50 or more cases and other: so Australia, Canada, Israel, UK, the US and all other countries. 
 
 ```{r}
 hallucination_cases <- hallucination_cases |>
@@ -76,6 +74,15 @@ hallucination_cases <- hallucination_cases |>
       TRUE ~ "Specific AI Tool"
     )
   )
+```
+
+```{r}
+hallucination_cases |>
+  ggplot(aes(x=ai_tool_group, fill = country_group)) +
+  geom_bar(position = "fill") +
+  labs(x = "AI Tool Group",
+       y = "Proportion of Cases",
+       fill = "Country")
 ```
 
 
@@ -120,7 +127,7 @@ ggplot(hallucination_cases, aes(x = `ai_tool_group`, fill = `Professional Sancti
 
 ```{r}
 library(broom)
-#making professional sanctions a binart variable and then running a glm 
+#making professional sanctions a binary variable and then running a glm 
 hallucination_cases <- hallucination_cases %>%
   mutate(
     professional_sanction_binary = if_else(
@@ -134,9 +141,13 @@ summary(logistic_model)
 #tidy(logistic_model)
 ```
 
+Why this model: This model is appropriate for our question of how the other variables in the dataset affect the probability of hallucinated cases receiving a professional sanction because we are testing what the strongest predictor of a professional sanction is between countries with 50 or more cases, primary legal field, and AI tool group. These are relevant explanatory variables because they all test different areas and thus have low chance of multicollinearity. Glm is also suited for this analysis because we made professional sanction into a binary variable.
 
-=======
-View(hallucination_cases)
+Interpretation: Based on the model, first we see that Canada, Israel, and the UK don't have a significant difference in predicting professional sanctions. However, countries with 50 or more cases lumped into the "other" category have a significantly higher likelihood to issue professional sanctions in hallucinated cases. Specifically, holding all other predictors fixed, a hallucinated case being in the "other" category of countries increases the log odds of receiving a professional sanction by 1.5383. In terms of legal fields, we again see that most legal fields don't matter in terms of professional sanctions in hallucinated cases, besides civil rights. Holding all other predictors constant, a hallucinated case being in the legal field of civil rights decreases the log odds of receiving a professional sanction by 1.1690. Lastly, we see that AI tools are the strongest predictors based on coefficients and statistical significance. Holding all other predictors fixed, a hallucinated case using specific AI tools has an increased log odds of 2.1332 in terms of receiving a professional sanction and unidentified tools 1.2661.
 
+Limitations: One limitation of our model is that many distinct countries are lumped into the "other" category of a higher likelihood of receiving a professional sanction. Based on the model, all we know is that Canada, Israel, and the UK don't have distinct differences in terms of professional sanctions in hallucinated cases, but the rest of the world does. This has limited explanatory power when looking at professional sanction by country throughout the world.
+```{r}
+mean(hallucination_cases$professional_sanction_binary)
 ```
->>>>>>> f0cb44343f2178d848408a81a1eb669841b93a1b
+Another limitation is that out of all hallucination cases, only 7.8 percent have a sanction. When there's a severe imbalance like this in the data, the model can become sensitive to small changes and underestimate the likelihood of "Yes" sanctions as opposed to "No" sanctions.
+
